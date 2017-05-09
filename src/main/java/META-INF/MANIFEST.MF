@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: org.hopto.gameserver.basicencryptioncracker.BasicEncryptio
+ nCracker
+
