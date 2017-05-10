@@ -1,34 +1,37 @@
 package org.hopto.gameserver.basicencryptioncracker.engine;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PasswordRotationEngine
 {
     private String alphabet = "abcdefghijklmnopqrstuvwxyz";
-    private int rotation;
     private String key;
     private String keyAlphabet;
 
-    public PasswordRotationEngine(int rotation, String key)
+    public PasswordRotationEngine(String key)
     {
-        this.rotation = rotation;
         this.key = key;
         String alpha = alphabet;
 
-        char[] keyChars = key.toCharArray();
+        //Doppelte Buchstaben aus key filtern
+        List<Character> keyChars = new ArrayList<Character>();
+        for(char c : key.toCharArray())
+        {
+            if(!keyChars.contains(c))
+            {
+                keyChars.add(c);
+            }
+        }
 
-        for (char c: keyChars)
+        //Buchstaben des Keys aus dem Alphabet filtern
+        for(char c : keyChars)
         {
             alpha = alpha.replace(c, Character.MIN_VALUE);
         }
-
-        //Nach dem ersetzen ist alpha "verunreinigt", also müssen wir ihn reinigen -,-
-        char[] alphaChars = alpha.toCharArray();
-
         StringBuilder sb = new StringBuilder();
-        for(char c : alphaChars)
+        for(char c : alpha.toCharArray())
         {
             if(c != Character.MIN_VALUE)
             {
@@ -37,10 +40,28 @@ public class PasswordRotationEngine
         }
         alpha = sb.toString();
 
-        //Der SplitChar wird beim Splitten entfernt, also müssen wir ihn manuell wieder einfügen...
-        char splitChar = alpha.charAt( alpha.length() - rotation);
-        String[] alphaParts = alpha.split(Character.toString(splitChar));
-        this.keyAlphabet = Character.toString(splitChar) + alphaParts[1] + key + alphaParts[0];
+        int offset = 0;
+        char lastKeyChar = keyChars.get(keyChars.toArray().length - 1);
+        char nextChar = alphabet.charAt( alphabet.indexOf(lastKeyChar)+1 );
+
+        while(keyChars.contains(nextChar))
+        {
+            offset++;
+            nextChar = alphabet.charAt( alphabet.indexOf(lastKeyChar)+1+offset );
+        }
+
+        //Alles zusammenbauen
+        String[] alphaParts = alpha.split(Character.toString(nextChar));
+        StringBuilder alphaBuilder = new StringBuilder();
+
+        //KeyChars hinzufügen
+        for(char c : keyChars)
+        {
+            alphaBuilder.append(c);
+        }
+
+        alphaBuilder.append(nextChar + alphaParts[1] + alphaParts[0]);
+        this.keyAlphabet = alphaBuilder.toString();
     }
 
 
@@ -95,10 +116,6 @@ public class PasswordRotationEngine
 
     public String getAlphabet() {
         return alphabet;
-    }
-
-    public int getRotation() {
-        return rotation;
     }
 
     public String getKey() {
