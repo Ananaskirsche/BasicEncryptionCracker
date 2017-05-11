@@ -12,6 +12,7 @@ public class PasswordRotationEngine
 
     public PasswordRotationEngine(String key)
     {
+        key = key.toLowerCase();
         this.key = key;
         String alpha = alphabet;
 
